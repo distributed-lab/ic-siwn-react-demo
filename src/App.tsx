@@ -3,6 +3,8 @@ import { FC, HTMLAttributes, memo } from 'react'
 
 import { AppRoutes } from '@/routes'
 import { createTheme } from '@/theme'
+import { NearContextProvider } from './near'
+import { SiwnIdentityProvider } from './siwn'
 
 const App: FC<HTMLAttributes<HTMLDivElement>> = () => {
   const theme = createTheme('dark')
@@ -10,9 +12,13 @@ const App: FC<HTMLAttributes<HTMLDivElement>> = () => {
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
-      <div className='App'>
-        <AppRoutes />
-      </div>
+      <NearContextProvider>
+        <SiwnIdentityProvider canisterId={canisterId} idlFactory={idlFactory}>
+          <div className='App'>
+            <AppRoutes />
+          </div>
+        </SiwnIdentityProvider>
+      </NearContextProvider>
     </ThemeProvider>
   )
 }

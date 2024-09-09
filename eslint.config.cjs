@@ -1,6 +1,6 @@
 const { fixupPluginRules, fixupConfigRules } = require('@eslint/compat')
 
-const simpleImportSort = require('eslint-plugin-simple-import-sort')
+// const simpleImportSort = require('eslint-plugin-simple-import-sort')
 const prettier = require('eslint-plugin-prettier')
 // const typescriptEslint = require("@typescript-eslint/eslint-plugin");
 const globals = require('globals')
@@ -31,7 +31,7 @@ module.exports = [
   ...fixupConfigRules(
     compat.extends(
       'eslint:recommended',
-      'plugin:import/recommended',
+      // 'plugin:import/recommended',
       'plugin:jsx-a11y/recommended',
       'plugin:react/recommended',
       'plugin:react/jsx-runtime',
@@ -42,10 +42,7 @@ module.exports = [
 
   {
     plugins: {
-      'simple-import-sort': simpleImportSort,
       prettier,
-      // "@typescript-eslint": typescriptEslint,
-
     },
 
     languageOptions: {
@@ -107,8 +104,6 @@ module.exports = [
 
       'no-return-await': 0,
       'object-curly-spacing': ['error', 'always'],
-      'simple-import-sort/imports': 'error',
-      'simple-import-sort/exports': 'error',
       'no-var': 'error',
       'comma-dangle': [1, 'always-multiline'],
       'linebreak-style': ['error', 'unix'],

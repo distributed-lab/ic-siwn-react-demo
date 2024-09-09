@@ -1,51 +1,18 @@
-import { CircularProgress, CssBaseline, Stack, ThemeProvider } from '@mui/material'
-import { FC, HTMLAttributes, memo, useCallback, useEffect, useMemo, useState } from 'react'
+import { CssBaseline, ThemeProvider } from '@mui/material'
+import { FC, HTMLAttributes, memo } from 'react'
 
-import { ToastsManager } from '@/contexts'
-import { ErrorHandler } from '@/helpers'
-import { useViewportSizes } from '@/hooks'
 import { AppRoutes } from '@/routes'
-import { useUiState } from '@/store'
 import { createTheme } from '@/theme'
 
 const App: FC<HTMLAttributes<HTMLDivElement>> = () => {
-  const [isAppInitialized, setIsAppInitialized] = useState(false)
-
-  const { paletteMode } = useUiState()
-
-  useViewportSizes()
-
-  const init = useCallback(async () => {
-    try {
-      /* empty */
-    } catch (error) {
-      ErrorHandler.processWithoutFeedback(error)
-    }
-
-    setIsAppInitialized(true)
-  }, [])
-
-  const theme = useMemo(() => createTheme(paletteMode), [paletteMode])
-
-  useEffect(() => {
-    init()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  const theme = createTheme('dark')
 
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
-      <ToastsManager>
-        <div className='App'>
-          {isAppInitialized ? (
-            <AppRoutes />
-          ) : (
-            <Stack alignItems='center' justifyContent='center' flex={1}>
-              <CircularProgress color='secondary' />
-            </Stack>
-          )}
-        </div>
-      </ToastsManager>
+      <div className='App'>
+        <AppRoutes />
+      </div>
     </ThemeProvider>
   )
 }

@@ -1,6 +1,4 @@
-import { ComponentsOverrides } from '@mui/material'
 import { TypographyOptions } from '@mui/material/styles/createTypography'
-import { ChartsComponentsPropsList } from '@mui/x-charts/themeAugmentation'
 import { CSSProperties } from 'react'
 
 export interface ExtendedTypographyOptions extends TypographyOptions {
@@ -85,14 +83,4 @@ declare module '@mui/material/styles' {
       gradient: string
     }
   }
-
-  interface Components<Theme = unknown> extends ChartsComponentsPropsList {
-    MuiChartsTooltip?: {
-      styleOverrides?: ComponentsOverrides<Theme>['MuiChartsTooltip']
-    }
-  }
-}
-
-declare module '@mui/material/styles/createTypography' {
-  interface Typography extends ExtendedTypographyOptions {}
 }

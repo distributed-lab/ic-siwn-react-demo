@@ -1,7 +1,3 @@
-import '@/locales'
-// eslint-disable-next-line import/no-unresolved
-import 'virtual:svg-icons-register'
-
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 

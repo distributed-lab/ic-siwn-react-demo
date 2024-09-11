@@ -1,11 +1,11 @@
-import { createContext, ReactNode, useContext, useEffect, useRef, useState } from 'react'
+import { createContext, ReactNode, useContext, useEffect, useState } from 'react'
 import {
-  LoginOkResponse,
-  PrepareLoginOkResponse,
   SIWN_IDENTITY_SERVICE,
   State,
   TSiwnIdentityContext,
   SignedDelegation as ServiceSignedDelegation,
+  PrepareLoginDetails,
+  LoginDetails,
 } from './types'
 import { type ActorConfig, type HttpAgentOptions } from '@dfinity/agent'
 import { IDL } from '@dfinity/candid'
@@ -13,9 +13,16 @@ import { callGetDelegation, callLogin, callPrepareLogin, createAnonymousActor } 
 import { normalizeError } from './error'
 import { DelegationIdentity, Ed25519KeyIdentity } from '@dfinity/identity'
 import { createDelegationChain } from './delegation'
-import { clearIdentity, loadIdentity, saveIdentity } from './local-storage'
+import {
+  clearIdentity,
+  clearMessage,
+  loadIdentity,
+  loadMessage,
+  saveIdentity,
+  saveMessage,
+} from './local-storage'
 import { useNear } from '@/near'
-import { SignedMessage } from '@near-wallet-selector/core'
+import { SignedMessage, SignMessageParams } from '@near-wallet-selector/core'
 
 export * from './types'
 
@@ -62,12 +69,7 @@ export function SiwnIdentityProvider<T extends SIWN_IDENTITY_SERVICE>({
     }))
   }
 
-  const loginPromiseHandlers = useRef<{
-    resolve: (value: DelegationIdentity | PromiseLike<DelegationIdentity>) => void
-    reject: (error: Error) => void
-  } | null>(null)
-
-  const prepareLogin = async (): Promise<PrepareLoginOkResponse | undefined> => {
+  const prepareLogin = async (): Promise<PrepareLoginDetails | undefined> => {
     if (!state.anonymousActor) {
       throw new Error(
         'Hook not initialized properly. Make sure to supply all required props to the SiwnIdentityProvider.',
@@ -117,16 +119,9 @@ export function SiwnIdentityProvider<T extends SIWN_IDENTITY_SERVICE>({
       loginStatus: 'error',
       loginError: new Error(errorMessage),
     })
-
-    loginPromiseHandlers.current?.reject(new Error(errorMessage))
   }
 
-  const onLoginSignatureSettled = async (message: SignedMessage | void) => {
-    if (!message) {
-      rejectLoginWithError(new Error('Sign message returned no data.'))
-      return
-    }
-
+  const onLoginSignatureSettled = async (message: SignedMessage) => {
     const sessionIdentity = Ed25519KeyIdentity.generate()
     const sessionPublicKey = sessionIdentity.getPublicKey().toDer()
 
@@ -135,19 +130,17 @@ export function SiwnIdentityProvider<T extends SIWN_IDENTITY_SERVICE>({
       return
     }
 
-    if (!state.prepareLoginOkResponse) {
-      rejectLoginWithError(new Error('Prepare login not called.'))
-      return
-    }
+    const params = loadMessage()
 
-    let loginOkResponse: LoginOkResponse
+    let loginOkResponse: LoginDetails
     try {
       loginOkResponse = await callLogin(
         state.anonymousActor,
         message.signature,
         connectedNearAddress,
+        message.publicKey,
         sessionPublicKey,
-        state.prepareLoginOkResponse.nonce,
+        params.nonce.toString('base64'),
       )
     } catch (e) {
       rejectLoginWithError(e, 'Unable to login.')
@@ -175,6 +168,7 @@ export function SiwnIdentityProvider<T extends SIWN_IDENTITY_SERVICE>({
     const identity = DelegationIdentity.fromDelegation(sessionIdentity, delegationChain)
 
     saveIdentity(connectedNearAddress, sessionIdentity, delegationChain)
+    clearMessage()
 
     updateState({
       loginStatus: 'success',
@@ -183,21 +177,17 @@ export function SiwnIdentityProvider<T extends SIWN_IDENTITY_SERVICE>({
       delegationChain,
     })
 
-    loginPromiseHandlers.current?.resolve(identity)
+    return identity
   }
 
   const login = async () => {
-    const promise = new Promise<DelegationIdentity>((resolve, reject) => {
-      loginPromiseHandlers.current = { resolve, reject }
-    })
-
     if (!state.anonymousActor) {
       rejectLoginWithError(
         new Error(
           'Hook not initialized properly. Make sure to supply all required props to the SiwnIdentityProvider.',
         ),
       )
-      return promise
+      return
     }
     if (!connectedNearAddress) {
       rejectLoginWithError(
@@ -205,11 +195,11 @@ export function SiwnIdentityProvider<T extends SIWN_IDENTITY_SERVICE>({
           'No Near address available. Call login after the user has connected their wallet.',
         ),
       )
-      return promise
+      return
     }
     if (state.prepareLoginStatus === 'preparing') {
       rejectLoginWithError(new Error("Don't call login while prepareLogin is running."))
-      return promise
+      return
     }
 
     updateState({
@@ -226,18 +216,18 @@ export function SiwnIdentityProvider<T extends SIWN_IDENTITY_SERVICE>({
         }
       }
 
-      const message = await signMessage({
-        message: prepareLoginOkResponse.siwn_message,
+      const params: SignMessageParams = {
+        message: prepareLoginOkResponse.message,
         recipient: connectedNearAddress,
         nonce: Buffer.from(prepareLoginOkResponse.nonce, 'base64'),
-      })
+        callbackUrl: prepareLoginOkResponse.callback_url,
+      }
 
-      onLoginSignatureSettled(message)
+      await signMessage(params)
+      saveMessage(params)
     } catch (e) {
       rejectLoginWithError(e)
     }
-
-    return promise
   }
 
   function clear() {
@@ -303,6 +293,7 @@ export function SiwnIdentityProvider<T extends SIWN_IDENTITY_SERVICE>({
         isPrepareLoginSuccess: state.prepareLoginStatus === 'success',
         isPrepareLoginIdle: state.prepareLoginStatus === 'idle',
         login,
+        onLoginSignatureSettled,
         isLoggingIn: state.loginStatus === 'logging-in',
         isLoginError: state.loginStatus === 'error',
         isLoginSuccess: state.loginStatus === 'success',

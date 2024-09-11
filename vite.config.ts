@@ -29,12 +29,13 @@ export default defineConfig(({ mode }) => {
   return {
     ...(env.VITE_PORT
       ? {
-          server: {
-            port: Number(env.VITE_PORT),
-          },
-        }
+        server: {
+          port: Number(env.VITE_PORT),
+        },
+      }
       : {}),
     plugins: [
+      nodePolyfills(),
       react(),
       tsconfigPaths(),
       createSvgIconsPlugin({
@@ -68,10 +69,10 @@ export default defineConfig(({ mode }) => {
       }),
       ...(mode === BaseModes.Analyze
         ? [
-            visualizer({
-              open: true,
-            }),
-          ]
+          visualizer({
+            open: true,
+          }),
+        ]
         : []),
     ],
     resolve: {
@@ -87,6 +88,7 @@ export default defineConfig(({ mode }) => {
       esbuildOptions: {
         define: {
           global: 'globalThis',
+          'process.env': JSON.stringify(env),
         },
       },
       // Enable esbuild polyfill plugins
@@ -104,7 +106,9 @@ export default defineConfig(({ mode }) => {
         plugins: [
           // Enable rollup polyfills plugin
           // used during production bundling
-          nodePolyfills(),
+          nodePolyfills({
+            include: ['buffer', 'process', 'util'],
+          }),
         ],
 
         output: {

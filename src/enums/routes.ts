@@ -1,4 +1,5 @@
 export enum RoutePaths {
   Root = '/',
-  Index = '/index',
+  LoginPage = '/login',
+  LoginICPPage = '/login-icp',
 }

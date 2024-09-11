@@ -23,13 +23,6 @@ export const createAnonymousActor = ({
   if (!idlFactory || !canisterId) return
   const agent = new HttpAgent({ ...httpAgentOptions })
 
-  if (process.env.DFX_NETWORK !== 'ic') {
-    agent.fetchRootKey().catch(err => {
-      console.warn('Unable to fetch root key. Check to ensure that your local replica is running')
-      console.error(err)
-    })
-  }
-
   return Actor.createActor<SIWN_IDENTITY_SERVICE>(idlFactory, {
     agent,
     canisterId,
@@ -58,16 +51,18 @@ export const callLogin = async (
   anonymousActor: ActorSubclass<SIWN_IDENTITY_SERVICE>,
   data: string | undefined,
   address: string | undefined,
+  publicKey: string | undefined,
   sessionPublicKey: DerEncodedPublicKey,
   nonce: string,
 ) => {
-  if (!anonymousActor || !data || !address) {
-    throw new Error('Invalid actor, data or address')
+  if (!anonymousActor || !data || !address || !publicKey) {
+    throw new Error('Invalid actor, data or address, or public key')
   }
 
   const loginReponse = await anonymousActor.siwn_login(
     data,
     address,
+    publicKey,
     new Uint8Array(sessionPublicKey),
     nonce,
   )

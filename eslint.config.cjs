@@ -25,6 +25,7 @@ module.exports = [
       '**/*.md',
       'static/env.js',
       '**/node_modules',
+      'src/declarations/*',
     ],
   },
 

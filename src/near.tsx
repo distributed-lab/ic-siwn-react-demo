@@ -8,7 +8,7 @@ import {
   WalletSelector,
 } from '@near-wallet-selector/core'
 import { setupMyNearWallet } from '@near-wallet-selector/my-near-wallet'
-import { createContext, ReactNode, useContext, useState } from 'react'
+import { createContext, ReactNode, useContext, useMemo, useState } from 'react'
 
 export type TNearContext = {
   init: () => Promise<boolean>
@@ -16,6 +16,7 @@ export type TNearContext = {
   signOut: () => Promise<void>
   signMessage: (params: SignMessageParams) => Promise<SignedMessage | void>
   accountId?: string
+  isConnected: boolean
 }
 
 export const NearContext = createContext<TNearContext | undefined>(undefined)
@@ -63,7 +64,7 @@ export const NearContextProvider = ({
     const _wallet = await selector.wallet('my-near-wallet')
     setWallet(_wallet)
     await _wallet.signIn({
-      contractId: 'fooboo',
+      contractId: '',
       methodNames: [],
       accounts: [],
     })
@@ -83,8 +84,10 @@ export const NearContextProvider = ({
     return wallet.signMessage?.(params)
   }
 
+  const isConnected = useMemo(() => Boolean(accountId), [accountId])
+
   return (
-    <NearContext.Provider value={{ init, signIn, signOut, signMessage, accountId }}>
+    <NearContext.Provider value={{ init, signIn, signOut, signMessage, accountId, isConnected }}>
       {children}
     </NearContext.Provider>
   )

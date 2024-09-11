@@ -13,19 +13,20 @@ export interface Delegation {
 
 export type GetDelegationResponse = { Ok: SignedDelegation } | { Err: string }
 
-export interface LoginOkResponse {
+export interface LoginDetails {
   user_canister_pubkey: CanisterPublicKey
   expiration: Timestamp
 }
 
-export type LoginResponse = { Ok: LoginOkResponse } | { Err: string }
+export type LoginResponse = { Ok: LoginDetails } | { Err: string }
 
-export interface PrepareLoginOkResponse {
+export interface PrepareLoginDetails {
+  callback_url: string
+  message: string
   nonce: string
-  siwn_message: SiwnMessage
 }
 
-export type PrepareLoginResponse = { Ok: PrepareLoginOkResponse } | { Err: string }
+export type PrepareLoginResponse = { Ok: PrepareLoginDetails } | { Err: string }
 
 export type PublicKey = Uint8Array | number[]
 
@@ -46,6 +47,6 @@ export type Nonce = string
 
 export interface SIWN_IDENTITY_SERVICE {
   siwn_prepare_login: ActorMethod<[Address], PrepareLoginResponse>
-  siwn_login: ActorMethod<[SiwnSignature, Address, SessionKey, Nonce], LoginResponse>
+  siwn_login: ActorMethod<[SiwnSignature, Address, string, SessionKey, Nonce], LoginResponse>
   siwn_get_delegation: ActorMethod<[Address, SessionKey, Timestamp], GetDelegationResponse>
 }

@@ -1,10 +1,12 @@
 import { DelegationChain, DelegationIdentity } from '@dfinity/identity'
 import { LoginStatus, PrepareLoginStatus } from './state'
+import { SignedMessage } from '@near-wallet-selector/core'
 
 export type TSiwnIdentityContext = {
   isInitializing: boolean
 
   prepareLogin: () => void
+  onLoginSignatureSettled: (message: SignedMessage) => void
 
   prepareLoginStatus: PrepareLoginStatus
 
@@ -15,7 +17,7 @@ export type TSiwnIdentityContext = {
 
   prepareLoginError?: Error
 
-  login: () => Promise<DelegationIdentity | undefined>
+  login: () => Promise<void>
 
   loginStatus: LoginStatus
 

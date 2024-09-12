@@ -12,6 +12,7 @@ import { RoutePaths } from '@/enums'
 import { createDeepPath } from './helpers'
 import PublicLayout from './layouts/PublicLayout'
 import { useNear } from './near'
+import { useSiwnIdentity } from './siwn'
 
 function WalletConnectedRoute({ children }: { children: ReactNode }) {
   const { isConnected } = useNear()
@@ -35,9 +36,20 @@ function LoggedInRoute({ children }: { children: ReactNode }) {
   )
 }
 
+function ICPConnectedRoute({ children }: { children: ReactNode }) {
+  const { identity } = useSiwnIdentity()
+
+  return identity ? (
+    children
+  ) : (
+    <Navigate to={RoutePaths.LoginICPPage} replace state={{ from: location }} />
+  )
+}
+
 export const AppRoutes = () => {
   const LoginPage = lazy(() => import('@/pages/Login'))
   const LoginICPPage = lazy(() => import('@/pages/LoginICP'))
+  const HomePage = lazy(() => import('@/pages/Home'))
 
   const router = createBrowserRouter([
     {
@@ -58,12 +70,21 @@ export const AppRoutes = () => {
             </LoggedInRoute>
           ),
         },
-
         {
           path: createDeepPath(RoutePaths.LoginICPPage),
           element: (
             <WalletConnectedRoute>
               <LoginICPPage />
+            </WalletConnectedRoute>
+          ),
+        },
+        {
+          path: createDeepPath(RoutePaths.HomePage),
+          element: (
+            <WalletConnectedRoute>
+              <ICPConnectedRoute>
+                <HomePage />
+              </ICPConnectedRoute>
             </WalletConnectedRoute>
           ),
         },

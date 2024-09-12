@@ -45,18 +45,23 @@ export function clearIdentity() {
   localStorage.removeItem(STORAGE_KEY)
 }
 
+export type SavedMessage = Omit<SignMessageParams, 'nonce'> & { nonce: string }
+
 export function saveMessage(message: SignMessageParams) {
-  localStorage.setItem('siwnMessage', JSON.stringify(message))
+  localStorage.setItem(
+    'siwnMessage',
+    JSON.stringify({ ...message, nonce: message.nonce.toString('base64') }),
+  )
 }
 
-export function loadMessage() {
+export function loadMessage(): SavedMessage {
   const storedState = localStorage.getItem('siwnMessage')
 
   if (!storedState) {
     throw new Error('No stored message found.')
   }
 
-  return JSON.parse(storedState) as SignMessageParams
+  return JSON.parse(storedState) as SavedMessage
 }
 
 export function clearMessage() {

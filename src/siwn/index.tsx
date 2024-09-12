@@ -125,6 +125,8 @@ export function SiwnIdentityProvider<T extends SIWN_IDENTITY_SERVICE>({
     const sessionIdentity = Ed25519KeyIdentity.generate()
     const sessionPublicKey = sessionIdentity.getPublicKey().toDer()
 
+    // console.log('on login signature settled', formatObject(message))
+
     if (!state.anonymousActor || !connectedNearAddress) {
       rejectLoginWithError(new Error('Invalid actor or address.'))
       return
@@ -140,7 +142,7 @@ export function SiwnIdentityProvider<T extends SIWN_IDENTITY_SERVICE>({
         connectedNearAddress,
         message.publicKey,
         sessionPublicKey,
-        params.nonce.toString('base64'),
+        params.nonce,
       )
     } catch (e) {
       rejectLoginWithError(e, 'Unable to login.')

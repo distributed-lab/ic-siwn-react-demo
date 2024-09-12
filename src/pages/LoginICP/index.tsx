@@ -1,12 +1,15 @@
+import { RoutePaths } from '@/enums'
 import { useNear } from '@/near'
 import { useSiwnIdentity } from '@/siwn'
 import { Button, Stack } from '@mui/material'
 import { SignedMessage } from '@near-wallet-selector/core'
 import { useEffect, useMemo, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 
 export default function LoginICPPage() {
   const { accountId, signOut } = useNear()
   const { login, onLoginSignatureSettled } = useSiwnIdentity()
+  const navigate = useNavigate()
 
   const [isDisabled, setIsDisabled] = useState(false)
 
@@ -25,7 +28,9 @@ export default function LoginICPPage() {
       }
 
       setIsDisabled(true)
+
       await onLoginSignatureSettled(signedMessage)
+      navigate(RoutePaths.HomePage)
       setIsDisabled(false)
     }
 

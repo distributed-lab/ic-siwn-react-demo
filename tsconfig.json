@@ -19,9 +19,15 @@
       "vite/client",
     ],
     "paths": {
-      "@/*": ["src/*"],
-      "@config": ["src/config.ts"],
-      "@static": ["static"]
+      "@/*": [
+        "src/*"
+      ],
+      "@config": [
+        "src/config.ts"
+      ],
+      "@static": [
+        "static"
+      ]
     },
     "lib": [
       "ESNext",
